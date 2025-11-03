@@ -48,6 +48,10 @@ struct JustPressCallbackAction : public ActionBase<JustPressCallbackAction> {
     }
     void operator=(void (*callback)(void* userdata)) { this->callback = callback; }
 };
+#define KEY(key, action)                       \
+    case GLFW_KEY_##key:                       \
+        action.update(press_or_release, user); \
+        break;
 struct Input {
 public:
     // ACTIONS
@@ -55,15 +59,34 @@ public:
     JustPressCallbackAction PRINT_HELO;
     Action FORWARD;
     Action BACKWARD;
+    Action LEFT;
+    Action RIGHT;
+    Action TURN_LEFT;
+    Action TURN_RIGHT;
     void key_cb(const int key, const bool press_or_release, const int mods, void* user) {
         // TODO: dynamic key mapping
+        // TODO: get rid of KEY() macro
         switch (key) {
-            case GLFW_KEY_ESCAPE:
-                QUIT.update(press_or_release, user);
-                break;
-            case GLFW_KEY_ENTER:
-                PRINT_HELO.update(press_or_release, user);
-                break;
+            // case GLFW_KEY_ESCAPE:
+            //     QUIT.update(press_or_release, user);
+            //     break;
+            // case GLFW_KEY_ENTER:
+            //     PRINT_HELO.update(press_or_release, user);
+            //     break;
+            // case GLFW_KEY_W:
+            //     FORWARD.update(press_or_release, user);
+            //     break;
+            // case GLFW_KEY_S:
+            //     BACKWARD.update(press_or_release, user);
+            //     break;
+            KEY(ESCAPE, QUIT)
+            KEY(ENTER, PRINT_HELO)
+            KEY(W, FORWARD)
+            KEY(S, BACKWARD)
+            KEY(A, LEFT)
+            KEY(D, RIGHT)
+            KEY(Q, TURN_LEFT)
+            KEY(E, TURN_RIGHT)
         }
     }
 };

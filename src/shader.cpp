@@ -1,15 +1,16 @@
 #pragma once
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-#include <GL/glext.h>
 #include <sys/types.h>
 
 #include <cstddef>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/mat4x4.hpp>
 
 #include "log.cpp"
 
 class Shader {
-    uint id;
+    uint _id;
 
 public:
     Shader(const char* vertex_src, const char* fragment_src) {
@@ -39,14 +40,14 @@ public:
         }
 
         // Link to shader program
-        id = glCreateProgram();
-        glAttachShader(id, vert);
-        glAttachShader(id, frag);
-        glLinkProgram(id);
+        _id = glCreateProgram();
+        glAttachShader(_id, vert);
+        glAttachShader(_id, frag);
+        glLinkProgram(_id);
         // error check
-        glGetProgramiv(id, GL_LINK_STATUS, &success);
+        glGetProgramiv(_id, GL_LINK_STATUS, &success);
         if (!success) {
-            glGetProgramInfoLog(id, sizeof(logbuf), NULL, logbuf);
+            glGetProgramInfoLog(_id, sizeof(logbuf), NULL, logbuf);
             LCRIT("shader program linking failed ({}): {:.{}}", success, logbuf, sizeof(logbuf));
         }
 
@@ -60,5 +61,14 @@ public:
     Shader(const Shader&) = delete;
     Shader& operator=(const Shader&) = delete;
 
-    inline void use() const { glUseProgram(id); }
+    inline void use() const { glUseProgram(_id); }
+    // TODO: cache uniform location somehow
+    inline void set_mat4(const char* path, const glm::mat4x4& data) {
+        int loc = glGetUniformLocation(_id, path);
+        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(data));
+    }
+    inline void set_int(const char* path, const int data) {
+        int loc = glGetUniformLocation(_id, path);
+        glUniform1i(loc, data);
+    }
 };

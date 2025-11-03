@@ -11,8 +11,7 @@
 
 ## (My own priority):
 #### Rendering
-1 Model-View-Projection matrix\
-2 Sprites\
-4 Try to decrease the input-lag by rendering everything on a framebuffer and then rotating in by mouse movement in a separate no-GPU thread\
+1 Predictable zoom and dynamic window size
+3 Try to decrease the input-lag by rendering everything on a framebuffer and then rotating in by mouse movement in a separate no-GPU thread\
 #### unrelated
-3 Movement
+2 Movement

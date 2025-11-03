@@ -6,6 +6,7 @@
 #include <glm/vec2.hpp>
 struct Vertex {
     glm::vec2 pos;
+    glm::vec2 texture;
 };
 class Mesh {
 protected:
@@ -30,19 +31,21 @@ public:
 
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texture)));
 
         glBindVertexArray(0);
     }
     inline static Mesh construct_rect(const float w, const float h) {
         const Vertex vertices[] = {
-            {{0.0f, 0.0f}},
-            {{w, 0.0f}},
-            {{w, h}},
-            {{0.0f, h}},
+            {{w, h}, {1.0f, 1.0f}},        // top right
+            {{w, 0.0f}, {1.0f, 0.0f}},     // bottom right
+            {{0.0f, 0.0f}, {0.0f, 0.0f}},  // bottom left
+            {{0.0f, h}, {0.0f, 1.0f}},     // top left
         };
         constexpr uint indices[] = {
-            0, 1, 2,  // first triangle
-            0, 2, 3   // second triangle
+            0, 1, 3,  // first triangle
+            1, 2, 3   // second triangle
         };
         return Mesh(vertices, sizeof(vertices) / sizeof(Vertex), indices, sizeof(indices) / sizeof(uint));
     }
