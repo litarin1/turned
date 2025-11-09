@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <memory>
 
 #include "mesh.cpp"
 #include "shader.cpp"
@@ -14,12 +15,17 @@ public:
     struct ShaderKey {
         const char* vertex_src;
         const char* fragment_src;
+        const bool operator<(const ShaderKey& other) const { return vertex_src < other.vertex_src || fragment_src < other.fragment_src; }
     };
     // Rectangle dimensions
     // TODO: use shader uniforms for dimensions instead of different meshes
     struct MeshRectKey {
+        const float xpivot;
+        const float ypivot;
         const float w;
         const float h;
+
+        const bool operator<(const MeshRectKey& other) const { return xpivot < other.xpivot || ypivot < other.ypivot || w < other.w || h < other.h; }
     };
 
 private:
@@ -28,9 +34,31 @@ private:
     std::map<ShaderKey, std::shared_ptr<Shader> > shaders;
 
 public:
-    std::shared_ptr<Texture> get_texture(const char* path) { return textures.try_emplace(path, path).first->second; }
-    std::shared_ptr<Shader> get_shader(const char* vertex_src, const char* fragment_src) {
-        return shaders.try_emplace({vertex_src, fragment_src}, vertex_src, vertex_src).first->second;
+    std::shared_ptr<Texture> get_texture(const char* path) {
+        std::shared_ptr<Texture>& ptr = textures[path];
+        if (!ptr) ptr = std::make_shared<Texture>(path);
+        return ptr;
     }
-    std::shared_ptr<Mesh> get_mesh_rect(const float w, const float h) { return meshes_rect.try_emplace({w, h}, w, h).first->second; }
+
+    std::shared_ptr<Shader> get_shader(const char* vertex_src, const char* fragment_src) {
+        auto& ptr = shaders[{vertex_src, fragment_src}];
+        if (!ptr) ptr = std::make_shared<Shader>(vertex_src, fragment_src);
+        return ptr;
+    }
+
+    std::shared_ptr<Mesh> get_mesh_rect(const float xpivot, const float ypivot, const float w, const float h) {
+        const Vertex vertices[] = {
+            {{w-xpivot, h-ypivot}, {1.0f, 1.0f}},        // top right
+            {{w-xpivot, 0.0f-ypivot}, {1.0f, 0.0f}},     // bottom right
+            {{0.0f-xpivot, 0.0f-ypivot}, {0.0f, 0.0f}},  // bottom left
+            {{0.0f-xpivot, h-ypivot}, {0.0f, 1.0f}},     // top left
+        };
+        constexpr uint indices[] = {
+            0, 1, 3,  // first triangle
+            1, 2, 3   // second triangle
+        };
+        auto& ptr = meshes_rect[{xpivot, ypivot, w, h}];
+        if (!ptr) ptr = std::make_shared<Mesh>(vertices, sizeof(vertices) / sizeof(Vertex), indices, sizeof(indices) / sizeof(uint));
+        return ptr;
+    }
 };
