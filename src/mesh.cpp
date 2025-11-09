@@ -14,6 +14,7 @@ protected:
     const size_t _nindices;
 
 public:
+    // only get from ResourceManager
     Mesh(const Mesh&) = delete;
     Mesh& operator=(const Mesh&) = delete;
     Mesh(const Vertex* vertices, const size_t nvertices, const uint* indices, const size_t nindices) : _nindices(nindices) {
@@ -36,20 +37,12 @@ public:
 
         glBindVertexArray(0);
     }
-    inline static Mesh construct_rect(const float w, const float h) {
-        const Vertex vertices[] = {
-            {{w, h}, {1.0f, 1.0f}},        // top right
-            {{w, 0.0f}, {1.0f, 0.0f}},     // bottom right
-            {{0.0f, 0.0f}, {0.0f, 0.0f}},  // bottom left
-            {{0.0f, h}, {0.0f, 1.0f}},     // top left
-        };
-        constexpr uint indices[] = {
-            0, 1, 3,  // first triangle
-            1, 2, 3   // second triangle
-        };
-        return Mesh(vertices, sizeof(vertices) / sizeof(Vertex), indices, sizeof(indices) / sizeof(uint));
-    }
 
     inline void use() { glBindVertexArray(_VAO); }
-    inline void draw() { glDrawElements(GL_TRIANGLES, _nindices, GL_UNSIGNED_INT, 0); }
+    inline void draw() {
+        glDrawElements(GL_TRIANGLES, _nindices, GL_UNSIGNED_INT, 0);
+    }
+    inline void draw_lines(){
+        glDrawElements(GL_LINE_LOOP, _nindices, GL_UNSIGNED_INT, 0);
+    }
 };
