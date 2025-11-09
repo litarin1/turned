@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <type_traits>
+#include <glm/vec2.hpp>
 
 enum class ActionState : uint8_t {
     RELEASED = 0,
@@ -52,6 +53,10 @@ struct JustPressCallbackAction : public ActionBase<JustPressCallbackAction> {
     case GLFW_KEY_##key:                       \
         action.update(press_or_release, user); \
         break;
+#define MOUSEBUTTON(button, action)                       \
+    case GLFW_MOUSE_BUTTON_##button:                       \
+        action.update(press_or_release, user); \
+        break;
 struct Input {
 public:
     // ACTIONS
@@ -89,4 +94,13 @@ public:
             KEY(E, TURN_RIGHT)
         }
     }
+    void mouse_cb(const int button, const bool press_or_release, void* user){
+        // TODO: get rid of MOUSEBUTTON() macro
+        switch(button){
+            MOUSEBUTTON(LEFT, FORWARD)
+            MOUSEBUTTON(RIGHT, BACKWARD)
+        }
+    }
+    glm::vec2 mouse_screen_pos{};
+    glm::vec2 mouse_world_pos{};
 };
