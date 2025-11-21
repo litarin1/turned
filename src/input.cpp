@@ -72,18 +72,6 @@ public:
         // TODO: dynamic key mapping
         // TODO: get rid of KEY() macro
         switch (key) {
-            // case GLFW_KEY_ESCAPE:
-            //     QUIT.update(press_or_release, user);
-            //     break;
-            // case GLFW_KEY_ENTER:
-            //     PRINT_HELO.update(press_or_release, user);
-            //     break;
-            // case GLFW_KEY_W:
-            //     FORWARD.update(press_or_release, user);
-            //     break;
-            // case GLFW_KEY_S:
-            //     BACKWARD.update(press_or_release, user);
-            //     break;
             KEY(ESCAPE, QUIT)
             KEY(ENTER, PRINT_HELO)
             KEY(W, FORWARD)

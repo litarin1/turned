@@ -37,8 +37,6 @@ public:
         // set position
         out[3] = glm::vec4(pos, 0.0f, 1.0f);
         // rotate it
-        // out = glm::translate(glm::mat4x4(1.0f), glm::vec3(pivot, 0.0f)) * glm::rotate(out, float(angle), glm::vec3(0.0f, 0.0f, 1.0f)) *
-        // glm::translate(glm::mat4x4(1.0f), glm::vec3(-pivot, 0.0f));
         out = glm::rotate(out, float(angle), glm::vec3(0.0f, 0.0f, 1.0f));
         // scale it
         out = glm::scale(out, glm::vec3(dimensions, 0.0f));

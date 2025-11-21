@@ -19,7 +19,6 @@ public:
         _dimensions.x = w;
         _dimensions.y = h;
         const float aspect = _dimensions.x / _dimensions.y;
-        // projection = glm::ortho(-1.0f, aspect, -1.0f, 1.0f / aspect, 0.0f, 1.0f);
         projection = glm::ortho(-_dimensions.x / 2.0f, _dimensions.x / 2.0f, -_dimensions.y / 2.0f, _dimensions.y / 2.0f, 0.0f, 1.0f);
     }
     inline glm::vec2 get_dimensions() const { return _dimensions; }

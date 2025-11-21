@@ -1,16 +1,6 @@
 #include <cmath>
 #include <filesystem>
-#include <glm/gtc/constants.hpp>
-#include <glm/trigonometric.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/ext/vector_float2_precision.hpp>
-#include <glm/geometric.hpp>
-#include <glm/gtx/rotate_vector.hpp>
-#include <glm/gtx/vector_angle.hpp>
-#include <glm/mat4x4.hpp>
-#include <glm/vec2.hpp>
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
@@ -28,6 +18,8 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+constexpr bool DRAW_DEBUG = true;
 
 class Game {
     GLFWwindow* _window;
@@ -61,7 +53,7 @@ public:
         glEnable(GL_BLEND);
         resource_manager.get_texture("assets/ship01.png");
         _ship_draw_data = new Ship::_StaticDrawResources(resource_manager);
-        LTRACE("SUCCESS #2");
+        LTRACE("Game::Game() success!");
     }
 
     GLFWwindow* get_window() const { return _window; }
@@ -82,8 +74,6 @@ public:
         spdlog::default_logger()->flush();
         Ship::predraw(*_ship_draw_data);
         for (Ship* ship : ships) { ship->draw(*_ship_draw_data, camera.get_view_projection()); }
-        // Ship::predraw_debug(*_ship_draw_data);
-        // for (Ship* ship : ships) { ship->draw_debug(*_ship_draw_data, camera.get_view_projection()); }
     }
     inline void debug_draw() {
         spdlog::default_logger()->flush();
@@ -122,8 +112,7 @@ int main() {
         game->process_input();
         game->process_physics(frame_delta);
         game->draw();
-        // game->debug_draw();
-        // game->post_render();
+        if (DRAW_DEBUG) game->debug_draw();
         glfwSwapBuffers(window);
         const double now = glfwGetTime();
         frame_delta = now - last_frame;

@@ -3,6 +3,7 @@
 
 # TODO:
 - Walls
+- Consider creating inheritance between Ship and Sprite
 #### Rendering
 #### Inputs
 - dynamic keys mapping
