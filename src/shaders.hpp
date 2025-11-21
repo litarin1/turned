@@ -1,3 +1,4 @@
+#pragma once
 constexpr static const char* VERTEX_SHADER_2D = R"(
 #version 330 core
 layout (location = 0) in vec2 aPos;
