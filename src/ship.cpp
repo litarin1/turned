@@ -28,7 +28,7 @@ public:
     // deprecated in favour of Mesh::pivot
     // glm::vec2 pivot{0.0f, 0.0f};
     double angle{};
-    std::shared_ptr<Texture> sprite;
+    std::shared_ptr<Texture> texture;
     glm::ivec2 dimensions;
 
     glm::mat4x4 get_model() {
@@ -51,12 +51,12 @@ public:
     // n times per frame
     void draw(_StaticDrawResources& res, const glm::mat4x4& VP) {
         res.shader->set_mat4("MVP", VP * get_model());
-        sprite->use(0);
+        texture->use(0);
         res.mesh->draw();
     }
     void draw_debug(_StaticDrawResources& res, const glm::mat4x4& VP) {
         res.shader->set_mat4("MVP", VP * get_model());
-        sprite->use(0);
+        texture->use(0);
         res.mesh->draw_lines();
     }
     void physics(const double dt, Input& input) {
@@ -71,6 +71,6 @@ public:
             vel -= glm::normalize(vel) * float(.4 * dt * dt);
         pos += vel * float(dt);
     }
-    Ship(std::shared_ptr<Texture> sprite, glm::vec2 pos = glm::vec2{0.0f, 0.0f}, double rot = 0.0)
-        : sprite(sprite), pos(pos), angle(rot), dimensions(sprite->w(), sprite->h()) {}
+    Ship(std::shared_ptr<Texture> texture, glm::vec2 pos = glm::vec2{0.0f, 0.0f}, double rot = 0.0)
+        : texture(texture), pos(pos), angle(rot), dimensions(texture->w(), texture->h()) {}
 };
