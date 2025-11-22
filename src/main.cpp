@@ -15,6 +15,7 @@
 #include "log.cpp"
 #include "resource_manager.cpp"
 #include "ship.cpp"
+#include "sprite.cpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -72,6 +73,7 @@ public:
     }
     inline void draw() {
         spdlog::default_logger()->flush();
+        for (Sprite* sprite : sprites) { sprite->draw(camera.get_view_projection()); }
         Ship::predraw(*_ship_draw_data);
         for (Ship* ship : ships) { ship->draw(*_ship_draw_data, camera.get_view_projection()); }
     }
@@ -80,7 +82,11 @@ public:
         Ship::predraw_debug(*_ship_draw_data);
         for (Ship* ship : ships) { ship->draw_debug(*_ship_draw_data, camera.get_view_projection()); }
     }
+
     std::vector<Ship*> ships{};
+    // TODO: associating sprites with Texture for using Sprite::predraw() only once per frame
+    std::vector<Sprite*> sprites{};
+
     inline void _set_viewport_dimensions(const uint w, const uint h) {
         camera.set_dimensions(w, h);
         glViewport(0, 0, w, h);
@@ -100,10 +106,14 @@ int main() {
     if (!window) LCRITRET(1, "!window");
     Game* game = new Game(window);
     game->ships.push_back(new Ship(game->resource_manager.get_texture("assets/ship01.png")));
+    game->sprites.push_back(new Sprite("assets/wall02.png", game->resource_manager, {2.0f, 2.0f}, {0.0f, 128.0f}));
 
+    {
+        int w, h;
+        glfwGetWindowSize(window, &w, &h);
+        game->_set_viewport_dimensions(w, h);
+    }
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* win, int w, int h) { Game::_get(win)->_set_viewport_dimensions(w, h); });
-    game->_set_viewport_dimensions(640, 640);
-
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glfwSwapInterval(0);
     double last_frame = glfwGetTime(), frame_delta = 0;
