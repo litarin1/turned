@@ -1,4 +1,5 @@
 build/
+build_ninja/
 .vscode/
 .idea/
 .helix/
