@@ -17,4 +17,12 @@ cd build
 cmake ../
 cmake --build . && ./main
 ```
+Use ninja to build:
+```sh
+mkdir build_ninja
+cd build_ninja
+cmake ../ -G Ninja
+cd ../
+cmake --build build_ninja && ./build_ninja/main
+```
  See also [BACKLOG.md](BACKLOG.md)
