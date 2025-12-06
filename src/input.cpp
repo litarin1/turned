@@ -1,8 +1,8 @@
 #pragma once
 #include <GLFW/glfw3.h>
 
-#include <type_traits>
 #include <glm/vec2.hpp>
+#include <type_traits>
 
 enum class ActionState : uint8_t {
     RELEASED = 0,
@@ -49,14 +49,13 @@ struct JustPressCallbackAction : public ActionBase<JustPressCallbackAction> {
     }
     void operator=(void (*callback)(void* userdata)) { this->callback = callback; }
 };
-#define KEY(key, action)                       \
-    case GLFW_KEY_##key:                       \
-        action.update(press_or_release, user); \
-        break;
-#define MOUSEBUTTON(button, action)                       \
-    case GLFW_MOUSE_BUTTON_##button:                       \
-        action.update(press_or_release, user); \
-        break;
+
+// clang-format off
+#define ACTION_FINAL(action) action.update(press_or_release, user); break;
+#define ACTION(action) action.update(press_or_release, user);
+#define KEY(key) case GLFW_KEY_##key
+#define MOUSEBUTTON(button) case GLFW_MOUSE_BUTTON_##button
+// clang-format on
 struct Input {
 public:
     // ACTIONS
@@ -68,27 +67,30 @@ public:
     Action RIGHT;
     Action TURN_LEFT;
     Action TURN_RIGHT;
+    // clang-format off
     void key_cb(const int key, const bool press_or_release, const int mods, void* user) {
         // TODO: dynamic key mapping
-        // TODO: get rid of KEY() macro
         switch (key) {
-            KEY(ESCAPE, QUIT)
-            KEY(ENTER, PRINT_HELO)
-            KEY(W, FORWARD)
-            KEY(S, BACKWARD)
-            KEY(A, LEFT)
-            KEY(D, RIGHT)
-            KEY(Q, TURN_LEFT)
-            KEY(E, TURN_RIGHT)
+            KEY(ENTER):  ACTION_FINAL(PRINT_HELO)
+            KEY(W):      ACTION_FINAL(FORWARD)
+            KEY(S):      ACTION_FINAL(BACKWARD)
+            KEY(A):      ACTION_FINAL(LEFT)
+            KEY(D):      ACTION_FINAL(RIGHT)
+            // KEY(Q):      ACTION_FINAL(TURN_LEFT)
+            // KEY(E):      ACTION_FINAL(TURN_RIGHT)
+            KEY(Q): ACTION(FORWARD) ACTION_FINAL(LEFT)
+            KEY(E): ACTION(FORWARD) ACTION_FINAL(RIGHT)
+            KEY(ESCAPE): ACTION_FINAL(QUIT)
         }
     }
-    void mouse_cb(const int button, const bool press_or_release, void* user){
+    void mouse_cb(const int button, const bool press_or_release, void* user) {
         // TODO: get rid of MOUSEBUTTON() macro
-        switch(button){
-            MOUSEBUTTON(LEFT, FORWARD)
-            MOUSEBUTTON(RIGHT, BACKWARD)
+        switch (button) {
+            MOUSEBUTTON(LEFT) : ACTION_FINAL(FORWARD)
+            MOUSEBUTTON(RIGHT) : ACTION_FINAL(BACKWARD)
         }
     }
+    // clang-format on
     glm::vec2 mouse_screen_pos{};
     glm::vec2 mouse_world_pos{};
 };
