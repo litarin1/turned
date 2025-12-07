@@ -39,10 +39,8 @@ public:
     }
 
     inline void use() { glBindVertexArray(_VAO); }
-    inline void draw() {
-        glDrawElements(GL_TRIANGLES, _nindices, GL_UNSIGNED_INT, 0);
-    }
-    inline void draw_lines(){
-        glDrawElements(GL_LINE_LOOP, _nindices, GL_UNSIGNED_INT, 0);
-    }
+    inline void draw() const { glDrawElements(GL_TRIANGLES, _nindices, GL_UNSIGNED_INT, 0); }
+#ifdef DRAW_DEBUG
+    inline void draw_lines() const { glDrawElements(GL_LINE_LOOP, _nindices, GL_UNSIGNED_INT, 0); }
+#endif
 };

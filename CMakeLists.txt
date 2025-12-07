@@ -13,6 +13,7 @@ find_package(OpenGL REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
 find_package(glm REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(box2d REQUIRED)
 
 include_directories(src/ third_party/)
 link_directories(third_party/)
@@ -22,6 +23,7 @@ target_link_libraries(main OpenGL::GL
     glfw
     glm::glm
     spdlog::spdlog
+    box2d
 )
 
 add_custom_target(copy_assets

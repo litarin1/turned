@@ -1,76 +1,92 @@
-#pragma once
+#include <box2d/box2d.h>
+#include <box2d/collision.h>
+#include <box2d/id.h>
+#include <box2d/math_functions.h>
+#include <box2d/types.h>
 
+#include <glm/trigonometric.hpp>
+
+#include "globals.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/rotate_vector.hpp>
 #include <memory>
 
-#include "input.cpp"
-#include "mesh.cpp"
-#include "resource_manager.cpp"
-#include "shader.cpp"
-#include "shaders.hpp"
+#include "body_factory.cpp"
+#include "sprite.cpp"
+#include "texture.cpp"
+#include "utils.cpp"
+
 class Ship {
 public:
-    struct _StaticDrawResources {
-        std::shared_ptr<Shader> shader;
-        std::shared_ptr<Shader> white_shader;
-        std::shared_ptr<Mesh> mesh;
-        _StaticDrawResources(ResourceManager& manager) {
-            shader = manager.get_shader(VERTEX_SHADER_2D, FRAGMENT_SHADER_2D);
-            white_shader = manager.get_shader(VERTEX_SHADER_2D, FRAGMENT_SHADER_2D_SINGLE_COLOR);
-            mesh = manager.get_mesh_rect(0.5f, 0.5f, 1.0f, 1.0f);
+    struct InputFrame {
+        // 0.0-1.0
+        double throttle = 0.0;
+        // 0.0-1.0
+        double slide = 0.0;
+        // world-space point to turn ship at
+        glm::vec2 lookat{};
+
+        void clear() {
+            throttle = 0.0;
+            slide = 0.0;
+            lookat = {0.0, 0.0};
         }
     };
-    glm::vec2 pos{};
-    glm::vec2 vel{};
-    // px/s2
-    double acceleration = 100.0;
-    // deprecated in favour of Mesh::pivot
-    // glm::vec2 pivot{0.0f, 0.0f};
-    double angle{};
-    std::shared_ptr<Texture> texture;
-    glm::ivec2 dimensions;
+    // i forgot the idea
+    // // produces Ship::InputFrame
+    // class Controller {};
 
-    glm::mat4x4 get_model() {
-        // create identity matrix
-        glm::mat4x4 out{1.0f};
-        // set position
-        out[3] = glm::vec4(pos, 0.0f, 1.0f);
-        // rotate it
-        out = glm::rotate(out, float(angle), glm::vec3(0.0f, 0.0f, 1.0f));
-        // scale it
-        out = glm::scale(out, glm::vec3(dimensions, 0.0f));
-        return out;
+    // processed in physics().
+    // TODO: make it a method
+    InputFrame inputs{};
+
+private:
+    b2BodyId _body_id;
+    Sprite _sprite;
+
+    double acceleration{};
+    double angular_max_speed{};
+
+public:
+    const Transform get_transform() const { return b2Body_GetTransform(_body_id); }
+    void set_transform(const Transform& other) { b2Body_SetTransform(_body_id, {other.pos.x, other.pos.y}, other.rot); };
+
+    void physics(const double& dt) {
+        Transform transform = get_transform();
+        b2Vec2 vel = b2Body_GetLinearVelocity(_body_id);
+        vel.x *= ZOOM_FACTOR;
+        vel.y *= ZOOM_FACTOR;
+
+        const b2Rot& q = transform.rot;
+        glm::vec2 input = limit_length(glm::vec2(inputs.slide, inputs.throttle), 1.0f) * float(acceleration) * float(dt);
+        vel.x += input.x * q.c + input.y * q.s;
+        vel.y -= input.x * q.s - input.y * q.c;
+
+        vel.x /= ZOOM_FACTOR;
+        vel.y /= ZOOM_FACTOR;
+
+        b2Body_SetLinearVelocity(_body_id, vel);
+        glm::vec2 rot = glm::normalize(inputs.lookat - get_transform().pos);
+        if (valid_vec2(rot)) b2Body_SetTransform(_body_id, {transform.pos.x, transform.pos.y}, {rot.y, rot.x});
+
+        _sprite.transform = get_transform();
     }
-    // once per frame
-    static void predraw(_StaticDrawResources& res) {
-        res.shader->use();
-        res.mesh->use();
+
+    // gets transform from constructed body
+    Ship(const std::shared_ptr<Texture>& texture, b2BodyId&& body, const double& acceleration = 100.0, const double& angular_max_speed = glm::tau<double>())
+        : _body_id(body), _sprite(texture, get_transform()), acceleration(acceleration), angular_max_speed(angular_max_speed) {
+        b2Body_SetMotionLocks(_body_id, {false, false, true});
     }
-    static void predraw_debug(_StaticDrawResources& res) { res.white_shader->use(); }
-    // n times per frame
-    void draw(_StaticDrawResources& res, const glm::mat4x4& VP) {
-        res.shader->set_mat4("MVP", VP * get_model());
-        texture->use(0);
-        res.mesh->draw();
+    // constructs the body in transform
+    Ship(const std::shared_ptr<Texture>& texture, const b2WorldId world, const Transform& transform, const double& acceleration = 100.0,
+         const double& angular_max_speed = glm::tau<double>())
+        : _body_id(body_factory::circle(world, b2BodyType::b2_dynamicBody, (texture->w() + texture->h()) / 4.0, transform)),
+          _sprite(texture, get_transform()),
+          acceleration(acceleration),
+          angular_max_speed(angular_max_speed) {
+        b2Body_SetMotionLocks(_body_id, {false, false, true});
     }
-    void draw_debug(_StaticDrawResources& res, const glm::mat4x4& VP) {
-        res.shader->set_mat4("MVP", VP * get_model());
-        texture->use(0);
-        res.mesh->draw_lines();
-    }
-    void physics(const double dt, Input& input) {
-        glm::vec2 input_dir = glm::vec2((input.RIGHT - input.LEFT), (input.FORWARD - input.BACKWARD));
-        const glm::vec2& mpos = input.mouse_world_pos;
-        angle = glm::atan(mpos.y - pos.y, mpos.x - pos.x) - glm::half_pi<float>();
-        if (input_dir != glm::vec2())
-            vel += (glm::vec2(glm::rotate(float(angle), glm::vec3{0.0f, 0.0f, 1.0f}) * glm::vec4(input_dir * float(dt * acceleration), 0.0f, 0.0f)));
-        else if (glm::length(vel) <= acceleration * dt * dt)
-            vel = glm::vec2(0.0f, 0.0f);
-        else
-            vel -= glm::normalize(vel) * float(.4 * dt * dt);
-        pos += vel * float(dt);
-    }
-    Ship(std::shared_ptr<Texture> texture, glm::vec2 pos = glm::vec2{0.0f, 0.0f}, double rot = 0.0)
-        : texture(texture), pos(pos), angle(rot), dimensions(texture->w(), texture->h()) {}
+
+public:
+    const Sprite& get_sprite() const { return _sprite; }
 };

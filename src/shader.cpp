@@ -51,12 +51,13 @@ public:
             LCRIT("shader program linking failed ({}): {:.{}}", success, logbuf, sizeof(logbuf));
         }
 
+        if (success != 1)
+            LWARN("SHADER {} ({} {}) NOT COMPILED SUCCESSFULLY ({})", _id, success, vert, frag);
+        else
+            LTRACE("SHADER {} ({} {}) COMPILED SUCCESSFULLY ({})", _id, success, vert, frag);
+
         glDeleteShader(vert);
         glDeleteShader(frag);
-        if (success != 1)
-            LWARN("SHADER NOT COMPILED SUCCESSFULLY ({})", success);
-        else
-            LTRACE("SHADER COMPILED SUCCESSFULLY ({})", success);
     }
     Shader(const Shader&) = delete;
     Shader& operator=(const Shader&) = delete;

@@ -3,6 +3,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 
+#include "globals.hpp"
+
 class Camera {
     glm::vec2 _dimensions{};
 
@@ -16,8 +18,8 @@ public:
         return projection * view;
     }
     inline void set_dimensions(const uint w, const uint h) {
-        _dimensions.x = w;
-        _dimensions.y = h;
+        _dimensions.x = w / ZOOM_FACTOR;
+        _dimensions.y = h / ZOOM_FACTOR;
         const float aspect = _dimensions.x / _dimensions.y;
         projection = glm::ortho(-_dimensions.x / 2.0f, _dimensions.x / 2.0f, -_dimensions.y / 2.0f, _dimensions.y / 2.0f, 0.0f, 1.0f);
     }
