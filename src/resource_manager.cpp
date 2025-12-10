@@ -1,10 +1,13 @@
 #pragma once
 #include <map>
 #include <memory>
+#include <tuple>
 
 #include "mesh.cpp"
 #include "shader.cpp"
 #include "texture.cpp"
+
+inline constexpr decltype(std::ignore) preload{};
 
 class ResourceManager {
 public:
@@ -36,21 +39,21 @@ private:
     std::map<ShaderKey, std::shared_ptr<Shader> > shaders;
 
 public:
-    [[nodiscard("Are you preloading resources? Use std::ignore then")]]
+    [[nodiscard("Are you preloading resources? Use preload = get_texture() then")]]
     std::shared_ptr<Texture> get_texture(const char* path) {
         std::shared_ptr<Texture>& ptr = textures[path];
         if (!ptr) ptr = std::make_shared<Texture>(path);
         return ptr;
     }
 
-    [[nodiscard("Are you preloading resources? Use std::ignore then")]]
+    [[nodiscard("Are you preloading resources? Use preload = get_shader() then")]]
     std::shared_ptr<Shader> get_shader(const char* vertex_src, const char* fragment_src) {
         auto& ptr = shaders[{vertex_src, fragment_src}];
         if (!ptr) ptr = std::make_shared<Shader>(vertex_src, fragment_src);
         return ptr;
     }
 
-    [[nodiscard("Are you preloading resources? Use std::ignore then")]]
+    [[nodiscard("Are you preloading resources? Use preload = get_mesh_rect() then")]]
     std::shared_ptr<Mesh> get_mesh_rect(const float xpivot, const float ypivot, const float w, const float h) {
         const Vertex vertices[] = {
             {{w - xpivot, h - ypivot}, {1.0f, 1.0f}},        // top right

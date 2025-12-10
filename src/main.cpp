@@ -65,7 +65,7 @@ public:
                                    [](GLFWwindow* w, int button, int action, int mods) { _get(w)->input.mouse_cb(button, action == GLFW_PRESS, _get(w)); });
 
         glEnable(GL_BLEND);
-        std::ignore = resource_manager.get_texture("assets/ship01.png");
+        preload = resource_manager.get_texture("assets/ship01.png");
         LTRACE("Game::Game() success!");
     }
 
