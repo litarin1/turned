@@ -47,3 +47,11 @@ public:
     }
     PID(const double& kP, const double& kI, const double& kD) : kP(kP), kI(kI), kD(kD) {}
 };
+
+struct Timer {
+    double target;
+
+    bool is_expired(const double& now) { return now >= target; }
+    void set_target(const double& new_target) { target = new_target; }
+    Timer(const double& target) : target(target) {}
+};

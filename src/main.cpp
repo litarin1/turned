@@ -155,19 +155,22 @@ int main() {
     }
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* win, int w, int h) { Game::_get(win)->_set_viewport_dimensions(w, h); });
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    // TODO: 60Hz timer for physics
-    glfwSwapInterval(1);
-    double last_frame = glfwGetTime(), frame_delta = 0;
+    glfwSwapInterval(0);
+    double now = glfwGetTime(), last_frame = now, frame_delta = 0;
+    Timer physics_timer{last_frame};
     while (!glfwWindowShouldClose(window)) {
+        now = glfwGetTime();
         glClear(GL_COLOR_BUFFER_BIT);
         game->process_input();
-        game->process_physics(1.0 / PHYSICS_RATE);
+        if (physics_timer.is_expired(now)) {
+            physics_timer.set_target(now + 1.0 / PHYSICS_RATE);
+            game->process_physics(1.0 / PHYSICS_RATE);
+        }
         game->draw();
 #ifdef DRAW_DEBUG
         game->debug_draw();
 #endif
         glfwSwapBuffers(window);
-        const double now = glfwGetTime();
         frame_delta = now - last_frame;
         last_frame = now;
     }
