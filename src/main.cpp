@@ -27,6 +27,14 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+class UserShipController final : public Ship::IController {
+    Ship::InputFrame _cache{};
+
+public:
+    virtual void update(const Input& input) override { _cache = {input.FORWARD - input.BACKWARD, input.RIGHT - input.LEFT, input.mouse_world_pos}; }
+    Ship::InputFrame get(const Ship& ship) override { return _cache; }
+};
+
 class Game {
     GLFWwindow* _window;
 
@@ -43,7 +51,7 @@ private:
 
 public:
     // TODO: current_controller so it can use not only the ship but the polymorphic controller
-    Ship* current_ship = nullptr;
+    std::shared_ptr<IControllerBase> current_controller;
     inline b2WorldId& get_world() { return world_id; }
     inline static Game* _cast(void* ptr) { return static_cast<Game*>(ptr); }
     inline static Game* _get(GLFWwindow* window) { return _cast(glfwGetWindowUserPointer(window)); }
@@ -80,10 +88,7 @@ public:
         input.mouse_world_pos = (camera.pos / float(ZOOM_FACTOR) - camera.get_dimensions() / 2.0f + glm::vec2(mousex, mousey) / float(ZOOM_FACTOR));
         input.mouse_world_pos.y = -input.mouse_world_pos.y;
 
-        if (current_ship) {
-            const double&& angle = oriented_angle_between(input.mouse_world_pos - current_ship->get_transform().pos, glm::vec2(0.0f, 1.0f));
-            current_ship->inputs = {input.FORWARD - input.BACKWARD, input.RIGHT - input.LEFT, input.mouse_world_pos};
-        }
+        if (current_controller) current_controller->update(input);
     }
     inline void process_physics(const double& delta) {
         b2World_Step(world_id, delta, PHYSICS_SUBSTEPS_COUNT);
@@ -135,8 +140,10 @@ int main() {
 
     Game* game = new Game(window, world_def);
 
-    game->ships.push_back(new Ship(game->resource_manager.get_texture("assets/ship01.png"), game->get_world(), Transform({0.0f, 0.0f}, 0.0)));
-    game->current_ship = game->ships[0];
+    Ship player_ship = Ship(game->resource_manager.get_texture("assets/ship01.png"), game->get_world(), Transform({0.0f, 0.0f}, 0.0));
+    game->ships.push_back(&player_ship);
+    player_ship.controller = std::make_shared<UserShipController>();
+    game->current_controller = player_ship.controller;
 
     std::array<StaticBody, 4> walls = {
         StaticBody::construct_box_from_texture(game->resource_manager.get_texture("assets/wall02.png"), game->get_world(), Transform({0.0, -(256.0)}, 0.0)),

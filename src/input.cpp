@@ -94,3 +94,10 @@ public:
     glm::vec2 mouse_screen_pos{};
     glm::vec2 mouse_world_pos{};
 };
+
+class IControllerBase {
+public:
+    // transforms Input into InputFrame, which is then used in get().
+    virtual void update(const Input& input) = 0;
+    // get() returns object-specific InputFrame (ex. Ship::InputFrame)
+};

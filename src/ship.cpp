@@ -12,6 +12,7 @@
 #include <memory>
 
 #include "body_factory.cpp"
+#include "input.cpp"
 #include "sprite.cpp"
 #include "texture.cpp"
 #include "utils.cpp"
@@ -32,13 +33,13 @@ public:
             lookat = {0.0, 0.0};
         }
     };
-    // i forgot the idea
-    // // produces Ship::InputFrame
-    // class Controller {};
+    class IController : public IControllerBase {
+    public:
+        // called from object's physics()
+        virtual Ship::InputFrame get(const Ship& ship) = 0;
+    };
 
-    // processed in physics().
-    // TODO: make it a method
-    InputFrame inputs{};
+    std::shared_ptr<IController> controller{};
 
 private:
     b2BodyId _body_id;
@@ -52,6 +53,7 @@ public:
     void set_transform(const Transform& other) { b2Body_SetTransform(_body_id, {other.pos.x, other.pos.y}, other.rot); };
 
     void physics(const double& dt) {
+        InputFrame inputs = controller->get(*this);
         Transform transform = get_transform();
         b2Vec2 vel = b2Body_GetLinearVelocity(_body_id);
         vel.x *= ZOOM_FACTOR;
