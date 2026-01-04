@@ -1,8 +1,11 @@
 #pragma once
 #include <GLFW/glfw3.h>
 
+#include <cstdint>
 #include <glm/vec2.hpp>
 #include <type_traits>
+
+#include "utils.cpp"
 
 enum class ActionState : uint8_t {
     RELEASED = 0,
@@ -14,17 +17,17 @@ enum class ActionState : uint8_t {
 template <class Derived = void>
 struct ActionBase {
     ActionState state{};
-    inline static void _press(ActionState& action) {
-        if (action == ActionState::RELEASED || action == ActionState::JUST_RELEASED) action = ActionState::JUST_PRESSED;
-    }
-    inline static void _release(ActionState& action) {
-        if (action == ActionState::PRESSED || action == ActionState::JUST_PRESSED) action = ActionState::JUST_RELEASED;
-    }
+    BoundedCounter<uint8_t> count = 0;
     inline void update(const bool press_or_release, void* user = nullptr) {
-        if (press_or_release)
-            _press(state);
-        else
-            _release(state);
+        if (press_or_release) {
+            count++;
+            if (count != count.min)
+                if (state == ActionState::RELEASED || state == ActionState::JUST_RELEASED) state = ActionState::JUST_PRESSED;
+        } else {
+            count--;
+            if (count == count.min)
+                if (state == ActionState::PRESSED || state == ActionState::JUST_PRESSED) state = ActionState::JUST_RELEASED;
+        }
         if constexpr (!std::is_void_v<Derived>) static_cast<Derived*>(this)->post_update(user);
     }
 };

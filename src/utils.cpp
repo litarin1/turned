@@ -1,6 +1,7 @@
 #pragma once
 #include <ctime>
 #include <glm/detail/setup.hpp>
+#include <limits>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/geometric.hpp>
 #include <glm/gtx/vector_angle.hpp>
@@ -54,4 +55,34 @@ struct Timer {
     bool is_expired(const double& now) { return now >= target; }
     void set_target(const double& new_target) { target = new_target; }
     Timer(const double& target) : target(target) {}
+};
+
+template <class T>
+struct BoundedCounter {
+    T value;
+    constexpr static T max = std::numeric_limits<T>().max();
+    constexpr static T min = std::numeric_limits<T>().min();
+
+    BoundedCounter(const T& value) : value(value) {}
+
+    BoundedCounter& operator++() {
+        if (value != max) value++;
+        return *this;
+    }
+    BoundedCounter& operator--() {
+        if (value != min) value--;
+        return *this;
+    }
+    BoundedCounter operator++(int) {
+        BoundedCounter old{*this};
+        operator++();
+        return old;
+    }
+    BoundedCounter operator--(int) {
+        BoundedCounter old{*this};
+        operator--();
+        return old;
+    }
+    bool operator==(const T& other) { return value == other; }
+    bool operator!=(const T& other) { return value != other; }
 };
